@@ -17,7 +17,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findByIdInAndUserId(List<Long> ids, Long userId);
 
     @Query("SELECT c FROM Category c " +
-            "WHERE c.name LIKE %:#{#filter.name} " +
+            "WHERE (:#{#filter.keyword} IS NULL OR c.name LIKE %:#{#filter.keyword}%) " +
+            "AND (:#{#filter.categoryType} IS NULL OR c.type = :#{#filter.categoryType}) " +
             "AND c.deletedAt IS NULL")
     Page<Category> filter(CategoryFilter filter, Pageable pageable);
 }

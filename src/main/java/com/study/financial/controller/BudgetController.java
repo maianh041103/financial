@@ -47,8 +47,8 @@ public class BudgetController {
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(required = false)LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate,
-            @RequestParam(value = "0") int page,
-            @RequestParam(value = "10") int limit
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int limit
             ){
         BudgetFilter filter = BudgetFilter.builder()
                 .keyword(keyword)

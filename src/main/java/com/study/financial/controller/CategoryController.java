@@ -45,8 +45,8 @@ public class CategoryController {
     public ResponseEntity<?> filter(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) TransactionType type,
-            @RequestParam(value = "0") int page,
-            @RequestParam(value = "10") int limit
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int limit
     ){
         CategoryFilter filter = CategoryFilter.builder()
                 .keyword(keyword)
