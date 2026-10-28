@@ -1,6 +1,7 @@
 package com.study.financial.repository;
 
 import com.study.financial.dto.BudgetDTO;
+import com.study.financial.dto.ReportBudget;
 import com.study.financial.entity.Budget;
 import com.study.financial.request.filter.BudgetFilter;
 import org.springframework.data.domain.Page;
@@ -76,4 +77,25 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
         GROUP BY b.id
     """)
     Page<BudgetDTO> filter(BudgetFilter filter, Pageable pageable);
+
+    @Query("""
+        SELECT new com.study.financial.dto.ReportBudget(
+            b.id,
+            b.name,
+            COALESCE(SUM(t.amount), 0),
+            b.amount,
+            b.warningPercent
+        )
+        FROM Budget b
+        JOIN BudgetCategory bc ON bc.budgetId = b.id
+        LEFT JOIN Transaction t
+            ON t.categoryId = bc.categoryId
+            AND t.transactionDate >= b.startDate
+            AND t.transactionDate <= b.endDate
+        WHERE b.userId = :userId
+          AND  b.startDate <= :endDate
+          AND b.endDate >= :startDate
+        GROUP BY b.id
+    """)
+    List<ReportBudget> getReportBudget(LocalDate startDate, LocalDate endDate, Long userId);
 }
