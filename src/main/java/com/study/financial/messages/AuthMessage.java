@@ -9,4 +9,5 @@ public class AuthMessage {
     public static final String PASSWORD_NOT_EQUAL = "Mật khẩu và nhập lại mật khẩu không giống nhau";
     public static final String USER_NOT_FOUND = "Tài khoản hoặc mật khẩu không chính xác";
     public static final String LOGIN_SUCCESS = "Đăng nhập thành công";
+    public static final String USER_NULL = "Tài khoản không tồn tại, vui lòng đăng nhập lại";
 }
