@@ -12,6 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Builder
 public class BudgetFilter {
+    private Long userId;
     private String keyword;
     private Long categoryId;
     private Boolean isActive;

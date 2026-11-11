@@ -122,6 +122,7 @@ public class BudgetService {
     public Page<BudgetDTO> filter(BudgetFilter filter, int page, int limit){
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
         if(Boolean.FALSE.equals(filter.getIsActive())) filter.setIsActive(null);
+        filter.setUserId(JwtService.getUserId());
         return budgetRepository.filter(filter, pageable);
     }
 

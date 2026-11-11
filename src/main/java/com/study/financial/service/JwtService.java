@@ -23,7 +23,6 @@ public class JwtService {
                 .subject(user.getEmail())
                 .claim("userId", user.getId())
                 .issuedAt(now)
-                .expiresAt(now.plusSeconds(3600))
                 .build();
 
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256)

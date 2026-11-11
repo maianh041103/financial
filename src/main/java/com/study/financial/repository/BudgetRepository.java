@@ -18,7 +18,7 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
         SELECT COUNT(b) > 0
         FROM Budget b
         JOIN BudgetCategory bc ON bc.budgetId = b.id
-        WHERE bc.categoryId IN :categoryId
+        WHERE bc.categoryId IN :categoryIds
           AND NOT (b.endDate < :startDate OR b.startDate > :endDate)
     """)
     boolean existsByCategoryIdsInTime(List<Long> categoryIds, LocalDate startDate, LocalDate endDate);
