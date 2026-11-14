@@ -63,6 +63,7 @@ public class CategoryService {
                 limit,
                 Sort.by(Sort.Direction.DESC, "createdAt")
         );
+        filter.setUserId(JwtService.getUserId());
         return categoryRepository.filter(filter, pageable);
     }
 

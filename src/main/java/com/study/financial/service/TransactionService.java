@@ -49,7 +49,6 @@ public class TransactionService {
                 .categoryId(request.getCategoryId())
                 .amount(request.getAmount())
                 .name(request.getName())
-                .amount(request.getAmount())
                 .userId(userId)
                 .transactionDate(request.getTransactionDate())
                 .paymentMethod(request.getPaymentMethod())
@@ -73,7 +72,7 @@ public class TransactionService {
         Long userId = JwtService.getUserId();
         Transaction transaction = transactionRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new BusinessException(TransactionMessage.TRANSACTION_NOT_EXISTED, HttpStatus.NOT_FOUND));
-        Category category = categoryRepository.findByIdAndUserId(id, userId).orElse(null);
+        Category category = categoryRepository.findByIdAndUserId(transaction.getCategoryId(), userId).orElse(null);
         return new TransactionDTO(transaction, category == null ? "" : category.getName());
     }
 

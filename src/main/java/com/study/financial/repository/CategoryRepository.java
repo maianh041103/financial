@@ -11,13 +11,34 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
+    @Query("SELECT COUNT(c) > 0 FROM Category c " +
+            "WHERE c.name = :name " +
+            "AND c.userId = :userId " +
+            "AND c.deletedAt IS NULL")
     boolean existsByNameAndUserId(String name, Long userId);
+
+    @Query("SELECT COUNT(c) > 0 FROM Category c " +
+            "WHERE c.name = :name " +
+            "AND c.userId = :userId " +
+            "AND c.id <> :id " +
+            "AND c.deletedAt IS NULL")
     boolean existsByNameAndUserIdAndIdNot(String name, Long userId, Long id);
+
+    @Query("SELECT c FROM Category c " +
+            "WHERE c.id = :id " +
+            "AND c.userId = :userId " +
+            "AND c.deletedAt IS NULL")
     Optional<Category> findByIdAndUserId(Long id, Long userId);
+
+    @Query("SELECT c FROM Category c " +
+            "WHERE c.id IN :ids " +
+            "AND c.userId = :userId " +
+            "AND c.deletedAt IS NULL")
     List<Category> findByIdInAndUserId(List<Long> ids, Long userId);
 
     @Query("SELECT c FROM Category c " +
-            "WHERE (:#{#filter.keyword} IS NULL OR c.name LIKE %:#{#filter.keyword}%) " +
+            "WHERE (:#{#filter.userId} IS NULL OR c.userId = :#{#filter.userId}) " +
+            "AND (:#{#filter.keyword} IS NULL OR c.name LIKE %:#{#filter.keyword}%) " +
             "AND (:#{#filter.categoryType} IS NULL OR c.type = :#{#filter.categoryType}) " +
             "AND c.deletedAt IS NULL")
     Page<Category> filter(CategoryFilter filter, Pageable pageable);

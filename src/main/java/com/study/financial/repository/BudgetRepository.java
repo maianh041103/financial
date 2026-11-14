@@ -18,17 +18,21 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
         SELECT COUNT(b) > 0
         FROM Budget b
         JOIN BudgetCategory bc ON bc.budgetId = b.id
-        WHERE bc.categoryId IN :categoryIds
+        WHERE b.userId = :userId
+          AND b.deletedAt IS NULL
+          AND bc.categoryId IN :categoryIds
+          AND (:excludeBudgetId IS NULL OR b.id <> :excludeBudgetId)
           AND NOT (b.endDate < :startDate OR b.startDate > :endDate)
     """)
-    boolean existsByCategoryIdsInTime(List<Long> categoryIds, LocalDate startDate, LocalDate endDate);
+    boolean existsByCategoryIdsInTime(List<Long> categoryIds, Long userId, LocalDate startDate, LocalDate endDate, Long excludeBudgetId);
 
     @Query("SELECT COUNT(b) > 0 FROM Budget b WHERE b.name = :name " +
             "AND b.userId = :userId " +
+            "AND b.deletedAt IS NULL " +
             "AND NOT (b.endDate < :startDate OR b.startDate > :endDate)")
     boolean existsByNameInTime(String name, Long userId, LocalDate startDate, LocalDate endDate);
 
-    @Query("SELECT b FROM Budget b WHERE id = :id AND userId = :userId")
+    @Query("SELECT b FROM Budget b WHERE b.id = :id AND b.userId = :userId AND b.deletedAt IS NULL")
     Optional<Budget> findByIdAndUserId(Long id, Long userId);
 
     @Query("""
@@ -40,6 +44,7 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
         JOIN BudgetCategory bc ON bc.budgetId = b.id
         LEFT JOIN Transaction t
             ON t.categoryId = bc.categoryId
+            AND t.deletedAt IS NULL
             AND t.transactionDate >= b.startDate
             AND t.transactionDate <= b.endDate
         WHERE b.userId = :#{#filter.userId}
@@ -90,6 +95,7 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
         JOIN BudgetCategory bc ON bc.budgetId = b.id
         LEFT JOIN Transaction t
             ON t.categoryId = bc.categoryId
+            AND t.deletedAt IS NULL
             AND t.transactionDate >= b.startDate
             AND t.transactionDate <= b.endDate
         WHERE b.userId = :userId

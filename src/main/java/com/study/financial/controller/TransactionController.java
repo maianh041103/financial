@@ -25,7 +25,7 @@ public class TransactionController {
 
     @PostMapping("")
     public ResponseEntity<?> create(@Valid @RequestBody TransactionRequest request){
-        return ResponseEntity.ok(
+        return ResponseEntity.status(HttpStatus.CREATED).body(
                 new ApiResponse<>(HttpStatus.CREATED.value(),
                         transactionService.create(request),
                         TransactionMessage.CREATE_EXPENSE_SUCCESS)
@@ -53,8 +53,6 @@ public class TransactionController {
                 .maxAmount(maxAmount)
                 .fromDate(fromDate)
                 .toDate(toDate)
-                .maxAmount(maxAmount)
-                .minAmount(minAmount)
                 .paymentMethod(paymentMethod)
                 .build();
 

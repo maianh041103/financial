@@ -23,8 +23,8 @@ public class BudgetController {
     public ResponseEntity<?> create(
             @Valid @RequestBody BudgetRequest request
     ){
-        return ResponseEntity.ok(new ApiResponse<>(
-                HttpStatus.OK.value(),
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(
+                HttpStatus.CREATED.value(),
                 budgetService.create(request),
                 BudgetMessage.CREATE_BUDGET_SUCCESS));
     }
@@ -45,7 +45,7 @@ public class BudgetController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Boolean isActive,
-            @RequestParam(required = false)LocalDate startDate,
+            @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit

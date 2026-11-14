@@ -23,6 +23,7 @@ public class JwtService {
                 .subject(user.getEmail())
                 .claim("userId", user.getId())
                 .issuedAt(now)
+                .expiresAt(now.plusSeconds(3600))
                 .build();
 
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256)
@@ -38,7 +39,10 @@ public class JwtService {
 
     public static Long getUserId(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Jwt jwt = (Jwt) authentication.getPrincipal();
-        return jwt.getClaim("userId");
+        if (authentication == null || !(authentication.getPrincipal() instanceof Jwt jwt)) {
+            return null;
+        }
+        Object claim = jwt.getClaim("userId");
+        return claim instanceof Number number ? number.longValue() : null;
     }
 }

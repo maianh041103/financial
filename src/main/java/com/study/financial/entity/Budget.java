@@ -29,6 +29,7 @@ public class Budget extends BaseEntity{
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
+    @Builder.Default
     @Column(name = "warning_percent", nullable = false, precision = 5, scale = 2)
     private BigDecimal warningPercent = new BigDecimal("80.00");
 }

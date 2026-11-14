@@ -2,16 +2,18 @@ package com.study.financial.request;
 
 import com.study.financial.enums.TransactionType;
 import com.study.financial.messages.CategoryMessage;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Không dùng @AllArgsConstructor: Jackson 3 (Boot 4) ưu tiên canonical constructor
+ * khi deserialize và sẽ truyền null cho field vắng mặt, làm mất mặc định type=INCOME.
+ */
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class CategoryRequest {
-    @NotNull(message = CategoryMessage.CATEGORY_NAME_NOT_NULL)
+    @NotBlank(message = CategoryMessage.CATEGORY_NAME_NOT_NULL)
     private String name;
     private String color;
     private String avatar;

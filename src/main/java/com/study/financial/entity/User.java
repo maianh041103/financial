@@ -28,5 +28,6 @@ public class User extends BaseEntity{
 
     @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private StatusEnum status = StatusEnum.ACTIVE;
 }

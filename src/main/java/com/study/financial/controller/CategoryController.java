@@ -22,7 +22,7 @@ public class CategoryController {
     public ResponseEntity<?> create(
             @Valid @RequestBody CategoryRequest request
             ){
-        return ResponseEntity.ok(new ApiResponse<>(
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(
                 HttpStatus.CREATED.value(),
                 categoryService.create(request),
                 CategoryMessage.CREATE_CATEGORY_SUCCESS

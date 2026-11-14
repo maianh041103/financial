@@ -35,9 +35,13 @@ public class AuthService {
     public User register(RegisterRequest request){
         log.info("Start register");
         validateRegister(request);
-        return userRepository.save(com.study.financial.entity.User.builder()
-                        .email(request.getEmail())
-                        .fullName(request.getFullName())
+        String email = request.getEmail().trim().toLowerCase();
+        if(userRepository.existsByEmailIgnoreCase(email)){
+            throw new BusinessException(AuthMessage.EMAIL_EXISTED, HttpStatus.BAD_REQUEST);
+        }
+        return userRepository.save(User.builder()
+                        .email(email)
+                        .fullName(request.getFullName().trim())
                         .password(passwordEncoder.encode(request.getPassword()))
                         .status(StatusEnum.ACTIVE)
                 .build());
@@ -45,7 +49,7 @@ public class AuthService {
 
     public String login(LoginRequest request){
         log.info("Start login");
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmail(request.getEmail().trim().toLowerCase())
                 .orElseThrow(() -> new BusinessException(AuthMessage.USER_NOT_FOUND, HttpStatus.NOT_FOUND));
         if(!passwordEncoder.matches(request.getPassword(), user.getPassword())){
             throw new BusinessException(AuthMessage.USER_NOT_FOUND, HttpStatus.NOT_FOUND);

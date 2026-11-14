@@ -19,7 +19,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody @Valid RegisterRequest request){
-        return ResponseEntity.ok(
+        return ResponseEntity.status(HttpStatus.CREATED).body(
                 new ApiResponse<>(HttpStatus.CREATED.value(), authService.register(request), AuthMessage.REGISTER_SUCCESS)
         );
     }

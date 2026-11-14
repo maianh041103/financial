@@ -16,7 +16,6 @@ import com.study.financial.repository.TransactionRepository;
 import com.study.financial.request.BudgetRequest;
 import com.study.financial.request.filter.BudgetFilter;
 import com.study.financial.utils.ListUtils;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +24,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -40,9 +38,7 @@ public class BudgetService {
     private final TransactionRepository transactionRepository;
 
     @Transactional
-    public Budget create(
-            @Valid @RequestBody BudgetRequest request
-    ){
+    public Budget create(BudgetRequest request){
         request.setName(request.getName().trim());
         if(request.getEndDate().isBefore(request.getStartDate())){
             throw new BusinessException(BudgetMessage.END_DATE_CANNOT_BE_BEFORE_START_DATE, HttpStatus.BAD_REQUEST);
@@ -52,7 +48,7 @@ public class BudgetService {
         if(categories.size() != request.getCategoryIds().size()){
             throw new BusinessException(CategoryMessage.CATEGORY_NOT_EXISTED, HttpStatus.BAD_REQUEST);
         }
-        if(budgetRepository.existsByCategoryIdsInTime(request.getCategoryIds(), request.getStartDate(), request.getEndDate())){
+        if(budgetRepository.existsByCategoryIdsInTime(request.getCategoryIds(), userId, request.getStartDate(), request.getEndDate(), null)){
             throw new BusinessException(BudgetMessage.BUDGET_EXISTED, HttpStatus.BAD_REQUEST);
         }
         if(budgetRepository.existsByNameInTime(request.getName(), userId, request.getStartDate(), request.getEndDate())){
@@ -86,19 +82,27 @@ public class BudgetService {
 
         List<BudgetCategory> budgetCategories = budgetCategoryRepository.findByBudgetId(budget.getId());
         if(budgetCategories.isEmpty()) throw new BusinessException(BudgetMessage.BUDGET_CATEGORY_NOT_EXISTED, HttpStatus.NOT_FOUND);
-        List<Long> categoryIds = budgetCategories.stream().map(BudgetCategory::getCategoryId).toList();
+        List<Long> currentCategoryIds = budgetCategories.stream().map(BudgetCategory::getCategoryId).toList();
 
-        if(!ListUtils.isEquals(categoryIds, request.getCategoryIds())){
+        boolean categoriesChanged = !ListUtils.isEquals(currentCategoryIds, request.getCategoryIds());
+        if(categoriesChanged){
             List<Category> newCategories = categoryRepository.findByIdInAndUserId(request.getCategoryIds(), userId);
             if(newCategories.size() != request.getCategoryIds().size()) {
                 throw new BusinessException(CategoryMessage.CATEGORY_NOT_EXISTED, HttpStatus.NOT_FOUND);
             }
-            if(budgetRepository.existsByCategoryIdsInTime(request.getCategoryIds(), request.getStartDate(), request.getEndDate())){
+        }
+
+        boolean datesChanged = !budget.getStartDate().equals(request.getStartDate())
+                || !budget.getEndDate().equals(request.getEndDate());
+        if(categoriesChanged || datesChanged){
+            List<Long> effectiveCategoryIds = categoriesChanged ? request.getCategoryIds() : currentCategoryIds;
+            if(budgetRepository.existsByCategoryIdsInTime(effectiveCategoryIds, userId, request.getStartDate(), request.getEndDate(), budget.getId())){
                 throw new BusinessException(BudgetMessage.BUDGET_CATEGORY_EXISTED, HttpStatus.BAD_REQUEST);
             }
+        }
 
-            budgetCategoryRepository.deleteByBudgetId(id);
-
+        if(categoriesChanged){
+            budgetCategoryRepository.deleteByBudgetId(budget.getId());
 
             List<BudgetCategory> newBudgetCategories = request.getCategoryIds().stream().map(x -> BudgetCategory.builder()
                     .budgetId(budget.getId())
@@ -114,14 +118,15 @@ public class BudgetService {
             budget.setName(request.getName());
         }
 
-        request.setStartDate(request.getStartDate());
-        request.setEndDate(request.getEndDate());
+        budget.setStartDate(request.getStartDate());
+        budget.setEndDate(request.getEndDate());
+        budget.setAmount(request.getAmount());
+        budget.setWarningPercent(request.getWarningPercent());
         return budget;
     }
 
     public Page<BudgetDTO> filter(BudgetFilter filter, int page, int limit){
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-        if(Boolean.FALSE.equals(filter.getIsActive())) filter.setIsActive(null);
         filter.setUserId(JwtService.getUserId());
         return budgetRepository.filter(filter, pageable);
     }
@@ -136,7 +141,7 @@ public class BudgetService {
             return new BudgetDetailDTO(budget, BigDecimal.ZERO, null);
         List<Long> categoryIds = budgetCategories.stream().map(BudgetCategory::getCategoryId).toList();
         List<Category> categories = categoryRepository.findByIdInAndUserId(categoryIds, userId);
-        List<Transaction> transactions = transactionRepository.findByCategoryIdInAndInTime(categoryIds, budget.getStartDate(), budget.getEndDate());
+        List<Transaction> transactions = transactionRepository.findByCategoryIdInAndInTime(categoryIds, userId, budget.getStartDate(), budget.getEndDate());
 
         BigDecimal usedAmount = BigDecimal.ZERO;
         for(Transaction transaction : transactions) usedAmount = usedAmount.add(transaction.getAmount());
@@ -150,12 +155,11 @@ public class BudgetService {
 
     @Transactional
     public void deleteById(Long id){
-        if(!budgetRepository.existsById(id)){
-            throw new BusinessException(BudgetMessage.BUDGET_NOT_EXISTED, HttpStatus.NOT_FOUND);
-        }
+        Budget budget = budgetRepository.findByIdAndUserId(id, JwtService.getUserId())
+                .orElseThrow(() -> new BusinessException(BudgetMessage.BUDGET_NOT_EXISTED, HttpStatus.NOT_FOUND));
 
-        budgetRepository.deleteById(id);
-        budgetCategoryRepository.deleteByBudgetId(id);
+        budgetCategoryRepository.deleteByBudgetId(budget.getId());
+        budgetRepository.delete(budget);
     }
 
 }

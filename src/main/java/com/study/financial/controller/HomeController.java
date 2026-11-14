@@ -1,5 +1,7 @@
 package com.study.financial.controller;
 
+import com.study.financial.exception.BusinessException;
+import com.study.financial.messages.CommonMessage;
 import com.study.financial.messages.HomeMessage;
 import com.study.financial.response.ApiResponse;
 import com.study.financial.service.HomeService;
@@ -45,10 +47,13 @@ public class HomeController {
             @RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate
     ){
+        if(startDate.isAfter(endDate)){
+            throw new BusinessException(CommonMessage.DATE_FILTER_INVALID, HttpStatus.BAD_REQUEST);
+        }
         return ResponseEntity.ok(new ApiResponse<>(
                 HttpStatus.OK.value(),
                 homeService.getReportBudget(startDate, endDate),
-                HomeMessage.GET_REPORT_TRANSACTION_SUCCESS
+                HomeMessage.GET_REPORT_BUDGET_SUCCESS
         ));
     }
 

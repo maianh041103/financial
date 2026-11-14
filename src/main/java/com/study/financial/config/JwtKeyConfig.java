@@ -5,6 +5,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -20,16 +21,16 @@ import java.nio.charset.StandardCharsets;
 @Configuration
 public class JwtKeyConfig {
 
-    private static final String SECRET =
-            "my-secret-key-my-secret-key-my-secret-key-123456";
-
     /**
-     * Secret key dùng để ký và verify JWT.
+     * Secret key dùng để ký và verify JWT (cấu hình qua property jwt.secret / biến môi trường JWT_SECRET).
      */
+    @Value("${jwt.secret}")
+    private String secret;
+
     @Bean
     public SecretKey jwtSecretKey() {
         return new SecretKeySpec(
-                SECRET.getBytes(StandardCharsets.UTF_8),
+                secret.getBytes(StandardCharsets.UTF_8),
                 "HmacSHA256"
         );
     }
